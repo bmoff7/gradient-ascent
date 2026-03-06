@@ -2,7 +2,7 @@
 	import LessonRenderer from '$lib/components/LessonRenderer.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import type { PageData } from './$types';
-	import { progressStore } from '$lib/stores/progress';
+	import { progressStore, isSignedIn, isLoading } from '$lib/stores/progress';
 	import { browser } from '$app/environment';
 
 	let { data }: { data: PageData } = $props();
@@ -35,6 +35,43 @@
 	<title>{data.module.title} — Gradient Ascent</title>
 </svelte:head>
 
+{#if !$isLoading && !$isSignedIn}
+	<!-- Auth gate -->
+	<div class="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+		<a href="/tracks/{data.track.slug}" class="mb-4 inline-flex items-center gap-1 text-[13px] text-text-dim hover:text-text">
+			<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path d="M15 19l-7-7 7-7" />
+			</svg>
+			{data.track.title}
+		</a>
+		<h1 class="display-serif text-2xl font-semibold tracking-tight sm:text-3xl mb-2">{data.module.title}</h1>
+		<p class="text-sm text-text-muted mb-6">{data.module.lessons.length} lessons / ~{data.moduleMeta.estimatedMinutes} min</p>
+
+		<!-- Blurred preview -->
+		<div class="relative">
+			<div class="prose-custom select-none blur-[6px] pointer-events-none" aria-hidden="true">
+				<h2>Lesson 1: {data.module.lessons[0].title}</h2>
+				<p>This lesson covers the foundational concepts you need to understand before diving deeper into the topic. We will explore the key principles, examine real-world applications, and build your intuition step by step through worked examples and interactive demonstrations.</p>
+				<p>By the end of this lesson, you will have a solid grasp of the core ideas and be ready to tackle more advanced material in the following sections of this module.</p>
+			</div>
+			<div class="absolute inset-0 flex items-center justify-center">
+				<div class="rounded-lg border border-border bg-bg-card/95 backdrop-blur-sm px-8 py-8 text-center max-w-sm">
+					<svg class="h-8 w-8 mx-auto mb-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+						<path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+					</svg>
+					<h3 class="display-serif text-lg font-semibold mb-1">Sign in to start learning</h3>
+					<p class="text-sm text-text-muted mb-5">Create a free account to access all lessons, earn XP, and track your progress.</p>
+					<a
+						href="/auth/signin"
+						class="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
+					>
+						Sign Up Free
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+{:else}
 <div class="flex min-h-[calc(100vh-3.5rem)]">
 	<!-- Sidebar -->
 	<aside class="hidden w-64 shrink-0 border-r border-border bg-bg-card/40 p-4 lg:block overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)]">
@@ -184,3 +221,4 @@
 		</div>
 	</div>
 </div>
+{/if}
