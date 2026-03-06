@@ -2,12 +2,24 @@
 	import ModuleCard from '$lib/components/ModuleCard.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import type { PageData } from './$types';
+	import { progressStore } from '$lib/stores/progress';
 
 	let { data }: { data: PageData } = $props();
 
+	let storeData = $derived($progressStore);
+	let moduleProgress = $derived(
+		Object.fromEntries(
+			data.track.modules.map((m) => {
+				const lessons = storeData.completedLessons[m.slug] ?? [];
+				const quizPassed = (storeData.quizResults[m.slug] ?? []).some((r: any) => r.passed);
+				return [m.slug, { completedLessons: lessons.length, quizPassed }];
+			})
+		)
+	);
+
 	let completedModules = $derived(
 		data.track.modules.filter((m) => {
-			const p = data.moduleProgress[m.slug];
+			const p = moduleProgress[m.slug];
 			return p && p.completedLessons >= m.lessonsCount && p.quizPassed;
 		}).length
 	);
@@ -58,8 +70,8 @@
 			<ModuleCard
 				module={mod}
 				trackSlug={data.track.slug}
-				completedLessons={data.moduleProgress[mod.slug]?.completedLessons ?? 0}
-				quizPassed={data.moduleProgress[mod.slug]?.quizPassed ?? false}
+				completedLessons={moduleProgress[mod.slug]?.completedLessons ?? 0}
+				quizPassed={moduleProgress[mod.slug]?.quizPassed ?? false}
 				index={i}
 			/>
 		{/each}

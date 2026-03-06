@@ -1,9 +1,6 @@
 <script lang="ts">
-	import { signIn } from '@auth/sveltekit/client';
 	import { tracks } from '$lib/content/tracks';
-	import type { PageData } from './$types';
-
-	let { data }: { data: PageData } = $props();
+	import { isSignedIn } from '$lib/stores/progress';
 
 	const totalModules = tracks.reduce((s, t) => s + t.modules.length, 0);
 	const totalLessons = tracks.reduce((s, t) => s + t.modules.reduce((s2, m) => s2 + m.lessonsCount, 0), 0);
@@ -28,7 +25,7 @@
 				</p>
 
 				<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-					{#if data.session?.user}
+					{#if $isSignedIn}
 						<a
 							href="/dashboard"
 							class="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
@@ -36,12 +33,12 @@
 							Continue Learning
 						</a>
 					{:else}
-						<button
-							onclick={() => signIn()}
+						<a
+							href="/auth/signin"
 							class="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
 						>
 							Start Learning — Free
-						</button>
+						</a>
 					{/if}
 					<a
 						href="/tracks"
@@ -193,7 +190,7 @@
 		<h2 class="display-serif text-2xl font-semibold tracking-tight sm:text-3xl">Start climbing.</h2>
 		<p class="mt-3 text-text-muted">Sign in to track your progress, or browse the curriculum freely.</p>
 		<div class="mt-6 flex flex-col gap-3 sm:flex-row">
-			{#if data.session?.user}
+			{#if $isSignedIn}
 				<a
 					href="/tracks"
 					class="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
@@ -201,12 +198,12 @@
 					Go to Tracks
 				</a>
 			{:else}
-				<button
-					onclick={() => signIn()}
+				<a
+					href="/auth/signin"
 					class="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
 				>
 					Get Started Free
-				</button>
+				</a>
 			{/if}
 		</div>
 	</div>

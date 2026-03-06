@@ -1,6 +1,8 @@
 <script lang="ts">
 	import QuizComponent from '$lib/components/Quiz.svelte';
 	import type { PageData } from './$types';
+	import { progressStore } from '$lib/stores/progress';
+	import { browser } from '$app/environment';
 
 	let { data }: { data: PageData } = $props();
 
@@ -9,22 +11,20 @@
 	let lastTotal = $state(0);
 	let lastPassed = $state(false);
 
-	async function handleComplete(score: number, total: number, passed: boolean) {
+	let storeData = $derived($progressStore);
+	let bestResult = $derived.by(() => {
+		if (!browser) return null;
+		const results = storeData.quizResults[data.module.slug];
+		if (!results || results.length === 0) return null;
+		return results.reduce((a: any, b: any) => (a.score > b.score ? a : b));
+	});
+
+	function handleComplete(score: number, total: number, passed: boolean) {
 		quizCompleted = true;
 		lastScore = score;
 		lastTotal = total;
 		lastPassed = passed;
-
-		await fetch('/api/quiz', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				moduleSlug: data.module.slug,
-				score,
-				totalQuestions: total,
-				passed
-			})
-		});
+		progressStore.submitQuiz(data.module.slug, score, total, passed);
 	}
 </script>
 
@@ -46,11 +46,11 @@
 
 		<h1 class="display-serif text-xl font-semibold mb-2">Module Quiz: {data.module.title}</h1>
 
-		{#if data.bestResult}
-			<div class="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] {data.bestResult.passed ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}">
-				Best: {data.bestResult.score}/{data.bestResult.totalQuestions}
-				({Math.round((data.bestResult.score / data.bestResult.totalQuestions) * 100)}%)
-				{data.bestResult.passed ? '— Passed' : ''}
+		{#if bestResult}
+			<div class="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[13px] {bestResult.passed ? 'border-success/30 bg-success/5 text-success' : 'border-warning/30 bg-warning/5 text-warning'}">
+				Best: {bestResult.score}/{bestResult.totalQuestions}
+				({Math.round((bestResult.score / bestResult.totalQuestions) * 100)}%)
+				{bestResult.passed ? '— Passed' : ''}
 			</div>
 		{/if}
 	</div>

@@ -2,31 +2,26 @@
 	import LessonRenderer from '$lib/components/LessonRenderer.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import type { PageData } from './$types';
+	import { progressStore } from '$lib/stores/progress';
+	import { browser } from '$app/environment';
 
 	let { data }: { data: PageData } = $props();
 
 	let currentLessonIndex = $state(0);
 	let currentLesson = $derived(data.module.lessons[currentLessonIndex]);
-	let isLessonComplete = $derived(data.completedLessons.includes(currentLesson.slug));
 
-	async function markComplete() {
-		const res = await fetch('/api/progress', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				trackSlug: data.track.slug,
-				moduleSlug: data.module.slug,
-				lessonSlug: currentLesson.slug
-			})
-		});
-		if (res.ok) {
-			if (!data.completedLessons.includes(currentLesson.slug)) {
-				data.completedLessons = [...data.completedLessons, currentLesson.slug];
-			}
-			if (currentLessonIndex < data.module.lessons.length - 1) {
-				currentLessonIndex++;
-				window.scrollTo({ top: 0, behavior: 'smooth' });
-			}
+	// Reactive completed lessons from store - reading $progressStore triggers auto-subscription
+	let storeData = $derived($progressStore);
+	let completedLessons = $derived(
+		browser ? (storeData.completedLessons[data.module.slug] ?? []) : []
+	);
+	let isLessonComplete = $derived(completedLessons.includes(currentLesson.slug));
+
+	function markComplete() {
+		progressStore.completeLesson(data.track.slug, data.module.slug, currentLesson.slug);
+		if (currentLessonIndex < data.module.lessons.length - 1) {
+			currentLessonIndex++;
+			window.scrollTo({ top: 0, behavior: 'smooth' });
 		}
 	}
 
@@ -52,8 +47,8 @@
 
 		<h2 class="display-serif mb-1 text-sm font-semibold">{data.module.title}</h2>
 		<div class="mb-3">
-			<ProgressBar value={data.completedLessons.length} max={data.module.lessons.length} size="sm" />
-			<span class="text-[10px] text-text-dim">{data.completedLessons.length}/{data.module.lessons.length} lessons</span>
+			<ProgressBar value={completedLessons.length} max={data.module.lessons.length} size="sm" />
+			<span class="text-[10px] text-text-dim">{completedLessons.length}/{data.module.lessons.length} lessons</span>
 		</div>
 
 		<nav class="space-y-0.5">
@@ -64,8 +59,8 @@
 						{currentLessonIndex === i ? 'bg-primary/10 text-primary-light font-medium' : 'text-text-muted hover:bg-bg-hover hover:text-text'}"
 				>
 					<div class="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[10px]
-						{data.completedLessons.includes(lesson.slug) ? 'text-success' : 'text-text-dim'}">
-						{#if data.completedLessons.includes(lesson.slug)}
+						{completedLessons.includes(lesson.slug) ? 'text-success' : 'text-text-dim'}">
+						{#if completedLessons.includes(lesson.slug)}
 							<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
 								<path d="M5 13l4 4L19 7" />
 							</svg>
@@ -103,8 +98,8 @@
 			</a>
 			<h2 class="display-serif text-sm font-semibold">{data.module.title}</h2>
 			<div class="mt-2 flex items-center gap-2">
-				<ProgressBar value={data.completedLessons.length} max={data.module.lessons.length} size="sm" />
-				<span class="text-[10px] text-text-dim">{data.completedLessons.length}/{data.module.lessons.length}</span>
+				<ProgressBar value={completedLessons.length} max={data.module.lessons.length} size="sm" />
+				<span class="text-[10px] text-text-dim">{completedLessons.length}/{data.module.lessons.length}</span>
 			</div>
 			<select
 				value={currentLessonIndex}

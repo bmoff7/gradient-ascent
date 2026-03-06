@@ -1,24 +1,18 @@
 <script lang="ts">
-	import { signIn } from '@auth/sveltekit/client';
+	import { goto } from '$app/navigation';
+	import { progressStore } from '$lib/stores/progress';
 
 	let name = $state('');
-	let loading = $state(false);
 	let error = $state('');
 
-	async function handleSubmit(e: Event) {
+	function handleSubmit(e: Event) {
 		e.preventDefault();
 		if (!name.trim()) {
 			error = 'Please enter a name.';
 			return;
 		}
-		error = '';
-		loading = true;
-		try {
-			await signIn('credentials', { name: name.trim(), callbackUrl: '/dashboard' });
-		} catch {
-			error = 'Something went wrong. Try again.';
-			loading = false;
-		}
+		progressStore.setName(name.trim());
+		goto('/dashboard');
 	}
 </script>
 
@@ -57,15 +51,14 @@
 
 			<button
 				type="submit"
-				disabled={loading}
-				class="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
+				class="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
 			>
-				{loading ? 'Signing in...' : 'Continue'}
+				Continue
 			</button>
 		</form>
 
 		<p class="mt-6 text-[12px] text-text-dim">
-			No account needed — just pick a name. You can also <a href="/tracks" class="text-secondary-light hover:text-secondary underline underline-offset-2">browse without signing in</a>.
+			No account needed — just pick a name. Your progress is saved in your browser. You can also <a href="/tracks" class="text-secondary-light hover:text-secondary underline underline-offset-2">browse without signing in</a>.
 		</p>
 	</div>
 </div>

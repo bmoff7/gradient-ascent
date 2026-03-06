@@ -1,12 +1,18 @@
 <script lang="ts">
 	import '../app.css';
 	import Nav from '$lib/components/Nav.svelte';
-	import type { LayoutData } from './$types';
+	import { progressStore } from '$lib/stores/progress';
+	import { browser } from '$app/environment';
 
-	let { data, children }: { data: LayoutData; children: any } = $props();
+	let { children }: { children: any } = $props();
+
+	// Initialize store from localStorage on client
+	if (browser) {
+		progressStore.init();
+	}
 </script>
 
-<Nav session={data.session} totalXP={data.totalXP} />
+<Nav />
 <main class="min-h-screen pt-14">
 	{@render children()}
 </main>

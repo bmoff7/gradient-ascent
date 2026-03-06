@@ -7,3 +7,5 @@ local.db
 .DS_Store
 local.db-shm
 local.db-wal
+.vercel
+.env*.local

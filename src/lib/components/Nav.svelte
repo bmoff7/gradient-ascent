@@ -1,19 +1,22 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { signIn, signOut } from '@auth/sveltekit/client';
-	import type { Session } from '@auth/sveltekit';
+	import { goto } from '$app/navigation';
 	import { getLevelForXP } from '$lib/content/types';
-
-	let { session = null, totalXP = 0 }: { session: Session | null; totalXP?: number } = $props();
+	import { progressStore, totalXP, userName, isSignedIn } from '$lib/stores/progress';
 
 	let mobileMenuOpen = $state(false);
-	let level = $derived(getLevelForXP(totalXP));
+	let level = $derived(getLevelForXP($totalXP));
 
 	const navLinks = [
 		{ href: '/tracks', label: 'Tracks' },
 		{ href: '/dashboard', label: 'Dashboard' },
 		{ href: '/achievements', label: 'Achievements' }
 	];
+
+	function handleSignOut() {
+		progressStore.signOut();
+		goto('/');
+	}
 </script>
 
 <nav class="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
@@ -45,39 +48,31 @@
 
 			<!-- Right side -->
 			<div class="flex items-center gap-3">
-				{#if session?.user}
+				{#if $isSignedIn}
 					<div class="hidden items-center gap-3 text-[13px] sm:flex">
-						<span class="text-xp font-medium">{totalXP} XP</span>
+						<span class="text-xp font-medium">{$totalXP} XP</span>
 						<span class="text-border-light">/</span>
 						<span class="text-text-dim">{level.name}</span>
 					</div>
 
 					<div class="flex items-center gap-2">
-						{#if session.user.image}
-							<img
-								src={session.user.image}
-								alt={session.user.name || 'User'}
-								class="h-7 w-7 rounded-full"
-							/>
-						{:else}
-							<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-medium text-white">
-								{(session.user.name || 'U')[0]}
-							</div>
-						{/if}
+						<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-medium text-white">
+							{($userName || 'U')[0]}
+						</div>
 						<button
-							onclick={() => signOut()}
+							onclick={handleSignOut}
 							class="hidden text-[13px] text-text-dim transition-colors hover:text-text md:inline"
 						>
 							Sign out
 						</button>
 					</div>
 				{:else}
-					<button
-						onclick={() => signIn()}
+					<a
+						href="/auth/signin"
 						class="rounded-md bg-primary px-3.5 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-primary-dark"
 					>
 						Sign in
-					</button>
+					</a>
 				{/if}
 
 				<!-- Mobile menu button -->
@@ -112,9 +107,9 @@
 						{link.label}
 					</a>
 				{/each}
-				{#if session?.user}
+				{#if $isSignedIn}
 					<div class="px-3 py-2 text-sm text-xp">
-						{level.name} — {totalXP} XP
+						{level.name} — {$totalXP} XP
 					</div>
 				{/if}
 			</div>

@@ -1,9 +1,23 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import { progressStore, isSignedIn } from '$lib/stores/progress';
+	import { achievements } from '$lib/content/achievements';
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 
-	let { data }: { data: PageData } = $props();
+	$effect(() => {
+		if (browser && !$isSignedIn) {
+			goto('/auth/signin');
+		}
+	});
 
-	let unlockedCount = $derived(data.achievements.filter((a) => a.unlocked).length);
+	let enrichedAchievements = $derived(
+		achievements.map((a) => ({
+			...a,
+			unlocked: $progressStore.unlockedAchievements.includes(a.id)
+		}))
+	);
+
+	let unlockedCount = $derived(enrichedAchievements.filter((a) => a.unlocked).length);
 </script>
 
 <svelte:head>
@@ -14,11 +28,11 @@
 	<div class="mb-8">
 		<p class="mb-2 text-[13px] font-medium uppercase tracking-widest text-text-dim">Progress</p>
 		<h1 class="display-serif text-2xl font-semibold">Achievements</h1>
-		<p class="mt-1 text-sm text-text-muted">{unlockedCount} of {data.achievements.length} unlocked</p>
+		<p class="mt-1 text-sm text-text-muted">{unlockedCount} of {achievements.length} unlocked</p>
 	</div>
 
 	<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-		{#each data.achievements as achievement}
+		{#each enrichedAchievements as achievement}
 			<div
 				class="rounded-lg border p-4 transition-all
 					{achievement.unlocked
