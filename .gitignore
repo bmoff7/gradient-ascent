@@ -1,0 +1,9 @@
+node_modules/
+.svelte-kit/
+build/
+.env
+local.db
+*.db
+.DS_Store
+local.db-shm
+local.db-wal
