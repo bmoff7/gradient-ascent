@@ -13,8 +13,8 @@
 		{ href: '/achievements', label: 'Achievements' }
 	];
 
-	function handleSignOut() {
-		progressStore.signOut();
+	async function handleSignOut() {
+		await progressStore.signOut();
 		goto('/');
 	}
 </script>

@@ -19,12 +19,12 @@
 		return results.reduce((a: any, b: any) => (a.score > b.score ? a : b));
 	});
 
-	function handleComplete(score: number, total: number, passed: boolean) {
+	async function handleComplete(score: number, total: number, passed: boolean) {
 		quizCompleted = true;
 		lastScore = score;
 		lastTotal = total;
 		lastPassed = passed;
-		progressStore.submitQuiz(data.module.slug, score, total, passed);
+		await progressStore.submitQuiz(data.module.slug, score, total, passed);
 	}
 </script>
 

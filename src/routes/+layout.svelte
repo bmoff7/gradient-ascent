@@ -6,7 +6,7 @@
 
 	let { children }: { children: any } = $props();
 
-	// Initialize store from localStorage on client
+	// Initialize Supabase auth listener on client
 	if (browser) {
 		progressStore.init();
 	}

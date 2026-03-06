@@ -17,8 +17,8 @@
 	);
 	let isLessonComplete = $derived(completedLessons.includes(currentLesson.slug));
 
-	function markComplete() {
-		progressStore.completeLesson(data.track.slug, data.module.slug, currentLesson.slug);
+	async function markComplete() {
+		await progressStore.completeLesson(data.track.slug, data.module.slug, currentLesson.slug);
 		if (currentLessonIndex < data.module.lessons.length - 1) {
 			currentLessonIndex++;
 			window.scrollTo({ top: 0, behavior: 'smooth' });
